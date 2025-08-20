@@ -129,8 +129,20 @@ func main() {
 	var err error
 	dsn := os.Getenv("DATABASE_URL")
 	if dsn == "" {
-		// Fallback for local development
-		dsn = "host=localhost user=postgres password=postgres dbname=menugen port=5432 sslmode=disable"
+		// Construct DATABASE_URL from Choreo connection environment variables
+		hostname := os.Getenv("CHOREO_CONNECTION_MENUGEN_BACKEND_DEFAULTDB_HOSTNAME")
+		port := os.Getenv("CHOREO_CONNECTION_MENUGEN_BACKEND_DEFAULTDB_PORT")
+		username := os.Getenv("CHOREO_CONNECTION_MENUGEN_BACKEND_DEFAULTDB_USERNAME")
+		password := os.Getenv("CHOREO_CONNECTION_MENUGEN_BACKEND_DEFAULTDB_PASSWORD")
+		dbname := os.Getenv("CHOREO_CONNECTION_MENUGEN_BACKEND_DEFAULTDB_DATABASENAME")
+
+		if hostname != "" && port != "" && username != "" && password != "" && dbname != "" {
+			dsn = fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=require",
+				hostname, username, password, dbname, port)
+		} else {
+			// Fallback for local development
+			dsn = "host=localhost user=postgres password=postgres dbname=menugen port=5432 sslmode=disable"
+		}
 	}
 
 	db, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})

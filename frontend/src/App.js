@@ -7,15 +7,6 @@ function App() {
   const [status, setStatus] = useState('');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-  // Check for Choreo managed auth
-  React.useEffect(() => {
-    // In a real Choreo deployment, window.configs would be injected
-    // For development, we'll simulate this
-    if (window.configs && window.configs.apiUrl) {
-      setIsAuthenticated(true);
-    }
-  }, []);
-
   const handleMenuProcessed = (processedMenu) => {
     setMenu(processedMenu);
     setStatus('Menu processed successfully!');

@@ -20,3 +20,40 @@ endpoints:
     networkVisibilities: 
       - Public
       - Organization
+
+# +optional Dependencies of the component
+dependencies:
+  # +optional Connection references to other services
+  connectionReferences:
+    - name: connection-menugen-backend-defaultdb
+      resourceRef: database:menugen-db/defaultdb
+    - name: openai-connection
+      resourceRef: thirdparty:OpenAI/v1
+    - name: replicate-connection
+      resourceRef: thirdparty:Replicate/v1
+
+# +optional Configurations for the component
+configurations:
+  env:
+    # OpenAI connection mapping
+    - name: OPENAI_API_KEY
+      valueFrom:
+        connectionRef:
+          name: openai-connection
+          key: OPENAI_API_KEY
+    - name: OPENAI_SERVICE_URL
+      valueFrom:
+        connectionRef:
+          name: openai-connection
+          key: ServiceURL
+    # Replicate connection mapping
+    - name: REPLICATE_API_KEY
+      valueFrom:
+        connectionRef:
+          name: replicate-connection
+          key: APIKey
+    - name: REPLICATE_SERVICE_URL
+      valueFrom:
+        connectionRef:
+          name: replicate-connection
+          key: ServiceURL

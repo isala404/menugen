@@ -7,6 +7,19 @@ function App() {
   const [status, setStatus] = useState('');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
+  React.useEffect(() => {
+    const sessionHint = document.cookie
+      .split('; ')
+      .find(row => row.startsWith('session_hint='))
+      ?.split('=')[1];
+
+    if (sessionHint) {
+      setIsAuthenticated(true);
+    } else {
+      setIsAuthenticated(false);
+    }
+  }, []);
+
   const handleMenuProcessed = (processedMenu) => {
     setMenu(processedMenu);
     setStatus('Menu processed successfully!');
@@ -27,7 +40,7 @@ function App() {
       .split('; ')
       .find(row => row.startsWith('session_hint='))
       ?.split('=')[1];
-    
+
     window.location.href = `/auth/logout${sessionHint ? `?session_hint=${sessionHint}` : ''}`;
   };
 
@@ -36,7 +49,7 @@ function App() {
       <header className="header">
         <h1>🍽️ Menu Visualizer</h1>
         <p>Transform your restaurant menu photos into interactive digital experiences</p>
-        
+
         {/* Authentication buttons for Choreo managed auth */}
         <div className="auth-container">
           {isAuthenticated ? (
@@ -57,7 +70,7 @@ function App() {
         </div>
       )}
 
-      <MenuUploader 
+      <MenuUploader
         onMenuProcessed={handleMenuProcessed}
         onStatusUpdate={handleStatusUpdate}
       />

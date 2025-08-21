@@ -1,0 +1,225 @@
+openapi: 3.0.0
+info:
+  title: Black Forest Labs FLUX.1 [dev] API
+  description: A 12 billion parameter rectified flow transformer capable of generating images from text descriptions.
+  version: v1.0.0
+servers:
+  - url: https://api.replicate.com/v1
+paths:
+  /models/black-forest-labs/flux-dev/predictions:
+    post:
+      summary: Generate an image from a text description
+      operationId: createPrediction
+      parameters:
+        - name: Authorization
+          in: header
+          required: true
+          schema:
+            type: string
+          description: "Bearer token for authentication"
+        - name: Content-Type
+          in: header
+          required: true
+          schema:
+            type: string
+            enum: ["application/json"]
+          description: "Content type of the request body"
+        - name: Prefer
+          in: header
+          required: false
+          schema:
+            type: string
+            enum: ["wait"]
+          description: "Optional. When set to 'wait', the server will wait up to 60 seconds for the prediction to complete before responding. If it does not complete within this window, the response will contain the current state and clients should poll the 'urls.get' endpoint until done."
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - input
+              properties:
+                input:
+                  $ref: '#/components/schemas/Input'
+            example:
+              input:
+                prompt: "black forest gateau cake spelling out the words \"FLUX DEV\", tasty, food photography, dynamic shot"
+      responses:
+        '201':
+          description: Prediction created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PredictionResponse'
+              examples:
+                sample:
+                  value:
+                    id: "yacq3tr2z9rme0crrwtr6bevbm"
+                    model: "black-forest-labs/flux-dev"
+                    version: "hidden"
+                    input:
+                      aspect_ratio: "1:1"
+                      go_fast: true
+                      guidance: 3.5
+                      num_inference_steps: 28
+                      num_outputs: 1
+                      output_format: "webp"
+                      output_quality: 80
+                      prompt: "French Twist"
+                    logs: ""
+                    output:
+                      - "https://replicate.delivery/xezq/wCZLrkmLNdJQOlNI4LMu6b2kuyvWqkj3TdtqyiOwFmqXhNTF/out-0.webp"
+                    data_removed: false
+                    error: null
+                    status: "processing"
+                    created_at: "2025-08-20T11:19:56.922Z"
+                    urls:
+                      cancel: "https://api.replicate.com/v1/predictions/yacq3tr2z9rme0crrwtr6bevbm/cancel"
+                      get: "https://api.replicate.com/v1/predictions/yacq3tr2z9rme0crrwtr6bevbm"
+                      stream: "https://stream.replicate.com/v1/files/bcwr-mbhpblvl5gl2nqb3vb7i5ehakhk7t7qpt5xuyeugn2lexxjabjga"
+                      web: "https://replicate.com/p/yacq3tr2z9rme0crrwtr6bevbm"
+        '400':
+          description: Bad request
+        '500':
+          description: Internal server error
+  /predictions/{id}:
+    get:
+      summary: Get prediction status
+      operationId: getPrediction
+      parameters:
+        - name: Authorization
+          in: header
+          required: true
+          schema:
+            type: string
+          description: "Bearer token for authentication"
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: "Prediction ID returned from createPrediction"
+      responses:
+        '200':
+          description: Current prediction state
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PredictionResponse'
+components:
+  schemas:
+    Input:
+      type: object
+      required:
+        - prompt
+      properties:
+        prompt:
+          type: string
+          description: "Prompt for the generated image."
+        aspect_ratio:
+          type: string
+          description: "Aspect ratio for the generated image."
+          default: "1:1"
+        image:
+          type: string
+          format: uri
+          description: "Input image for image-to-image mode. The aspect ratio of your output will match this image."
+        prompt_strength:
+          type: number
+          description: "Prompt strength when using img2img. 1.0 corresponds to full destruction of information in the image."
+          default: 0.8
+        num_outputs:
+          type: integer
+          description: "Number of outputs to generate."
+          default: 1
+        num_inference_steps:
+          type: integer
+          description: "Number of denoising steps. Recommended range is 28-50. Lower steps produce lower quality outputs faster."
+          default: 28
+        guidance:
+          type: number
+          description: "Guidance for the generated image. Lower values can give more realistic images. Good values to try are 2, 2.5, 3, and 3.5."
+          default: 3.5
+        seed:
+          type: integer
+          description: "Random seed. Set for reproducible generation."
+        output_format:
+          type: string
+          description: "Format of the output images."
+          default: "webp"
+        output_quality:
+          type: integer
+          description: "Quality when saving the output images (0-100). 100 is best. Not relevant for .png."
+          default: 80
+        disable_safety_checker:
+          type: boolean
+          description: "Disable safety checker for generated images."
+          default: false
+        go_fast:
+          type: boolean
+          description: "Run faster predictions with additional optimizations."
+          default: true
+        megapixels:
+          type: string
+          description: "Approximate number of megapixels for the generated image."
+          default: "1"
+    PredictionResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          description: "Unique identifier for the prediction"
+        model:
+          type: string
+          description: "Model identifier"
+        version:
+          type: string
+          description: "Model version"
+        input:
+          $ref: '#/components/schemas/Input'
+        logs:
+          type: string
+          description: "Logs from the prediction process"
+        output:
+          $ref: '#/components/schemas/PredictionOutput'
+        data_removed:
+          type: boolean
+          description: "Whether data has been removed"
+        error:
+          type: string
+          nullable: true
+          description: "Error message if prediction failed"
+        status:
+          type: string
+          enum: ["starting", "processing", "succeeded", "failed", "canceled"]
+          description: "Current status of the prediction"
+        created_at:
+          type: string
+          format: date-time
+          description: "Timestamp when prediction was created"
+        urls:
+          type: object
+          properties:
+            cancel:
+              type: string
+              format: uri
+              description: "URL to cancel the prediction"
+            get:
+              type: string
+              format: uri
+              description: "URL to get prediction status. Poll this endpoint until output is available. For local apps without public webhooks, polling is recommended."
+            stream:
+              type: string
+              format: uri
+              description: "URL for streaming updates"
+            web:
+              type: string
+              format: uri
+              description: "Web URL to view the prediction"
+    PredictionOutput:
+      type: array
+      description: "Array of output file URLs. When this contains one or more URLs, processing is complete; otherwise continue polling 'urls.get'."
+      items:
+        type: string
+        format: uri

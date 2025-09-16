@@ -1,13 +1,63 @@
 import { useState, useEffect } from 'react'
 
-const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080'
+// Get API URL from Choreo config or fallback to local development
+const getApiUrl = () => {
+  return window?.configs?.apiUrl || import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080'
+}
 
 function App() {
+  const [user, setUser] = useState(null)
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
   const [selectedFile, setSelectedFile] = useState(null)
   const [menuId, setMenuId] = useState(null)
   const [menuData, setMenuData] = useState(null)
   const [isUploading, setIsUploading] = useState(false)
   const [error, setError] = useState(null)
+
+  const BASE_URL = getApiUrl()
+
+  // Check authentication status on component mount
+  useEffect(() => {
+    checkAuthStatus()
+  }, [])
+
+  const checkAuthStatus = async () => {
+    try {
+      const response = await fetch('/auth/userinfo', {
+        credentials: 'include'
+      })
+      
+      if (response.ok) {
+        const userInfo = await response.json()
+        setUser(userInfo)
+        setIsAuthenticated(true)
+      } else {
+        setIsAuthenticated(false)
+      }
+    } catch (err) {
+      setIsAuthenticated(false)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleLogin = () => {
+    window.location.href = '/auth/login'
+  }
+
+  const handleLogout = () => {
+    const sessionHint = document.cookie
+      .split('; ')
+      .find(row => row.startsWith('session_hint='))
+      ?.split('=')[1]
+    
+    const logoutUrl = sessionHint 
+      ? `/auth/logout?session_hint=${sessionHint}`
+      : '/auth/logout'
+    
+    window.location.href = logoutUrl
+  }
 
   const handleFileSelect = (event) => {
     const file = event.target.files[0]
@@ -46,6 +96,7 @@ function App() {
 
       const response = await fetch(`${BASE_URL}/api/menu`, {
         method: 'POST',
+        credentials: 'include',
         body: formData,
       })
 
@@ -68,7 +119,9 @@ function App() {
 
   const pollMenuStatus = async (id) => {
     try {
-      const response = await fetch(`${BASE_URL}/api/menu/${id}`)
+      const response = await fetch(`${BASE_URL}/api/menu/${id}`, {
+        credentials: 'include'
+      })
       
       if (!response.ok) {
         const errorData = await response.json()
@@ -144,13 +197,61 @@ function App() {
     return Object.values(sectionMap).filter(section => section.dishes.length > 0)
   }
 
+  // Show loading state while checking authentication
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-4xl mb-4">⏳</div>
+          <p className="text-lg text-gray-600">Loading...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // Show login screen if not authenticated
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8 text-center">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">MenuGen</h1>
+          <p className="text-lg text-gray-600 mb-8">Transform your menu photos into structured digital menus with AI</p>
+          <button
+            onClick={handleLogin}
+            className="w-full px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            Sign In to Continue
+          </button>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-6xl mx-auto px-4">
-        {/* Header */}
+        {/* Header with logout */}
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">MenuGen</h1>
-          <p className="text-xl text-gray-600">Transform your menu photos into structured digital menus with AI</p>
+          <div className="flex justify-between items-center mb-4">
+            <div></div>
+            <div>
+              <h1 className="text-4xl font-bold text-gray-900 mb-2">MenuGen</h1>
+              <p className="text-xl text-gray-600">Transform your menu photos into structured digital menus with AI</p>
+            </div>
+            <div className="text-right">
+              {user && (
+                <div className="mb-2">
+                  <p className="text-sm text-gray-600">Welcome, {user.preferred_username || user.email || 'User'}</p>
+                </div>
+              )}
+              <button
+                onClick={handleLogout}
+                className="px-4 py-2 text-sm bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
+              >
+                Sign Out
+              </button>
+            </div>
+          </div>
         </div>
 
         {/* Upload Section */}

@@ -32,3 +32,36 @@ dependencies:
       resourceRef: thirdparty:OpenAI/v1
     - name: Replicate Connection
       resourceRef: thirdparty:Replicate/v1
+    - name: connection-menugen-backend-defaultdb
+      resourceRef: database:menugen-db/defaultdb
+
+# +optional Configuration mappings for the component
+configurations:
+  env:
+    - name: DB_HOST
+      valueFrom:
+        connectionRef:
+          name: connection-menugen-backend-defaultdb
+          key: HostName
+    - name: DB_PORT
+      valueFrom:
+        connectionRef:
+          name: connection-menugen-backend-defaultdb
+          key: Port
+    - name: DB_USER
+      valueFrom:
+        connectionRef:
+          name: connection-menugen-backend-defaultdb
+          key: Username
+    - name: DB_PASSWORD
+      valueFrom:
+        connectionRef:
+          name: connection-menugen-backend-defaultdb
+          key: Password
+    - name: DB_NAME
+      valueFrom:
+        connectionRef:
+          name: connection-menugen-backend-defaultdb
+          key: DatabaseName
+    - name: DB_SSL_MODE
+      value: require

@@ -24,3 +24,11 @@ endpoints:
     networkVisibilities: 
       - Public
       - Organization
+
+# +optional Dependencies for the component
+dependencies:
+  connectionReferences:
+    - name: OpenAI Connection
+      resourceRef: thirdparty:OpenAI/v1
+    - name: Replicate Connection
+      resourceRef: thirdparty:Replicate/v1

@@ -625,7 +625,11 @@ func processMenu(menuID string, imageContent []byte) {
 }
 
 func extractMenuStructure(imageContent []byte) (*StructuredMenu, error) {
-	openaiAPIKey := os.Getenv("OPENAI_API_KEY")
+	// Try Choreo-provided environment variables first, then fall back to direct env vars
+	openaiAPIKey := os.Getenv("CHOREO_OPENAI_CONNECTION_OPENAI_API_KEY")
+	if openaiAPIKey == "" {
+		openaiAPIKey = os.Getenv("OPENAI_API_KEY")
+	}
 	if openaiAPIKey == "" {
 		return nil, fmt.Errorf("OPENAI_API_KEY not set")
 	}
@@ -783,7 +787,11 @@ func enhanceDish(dishID string) bool {
 }
 
 func generateDishDescription(dishName string) (string, error) {
-	openaiAPIKey := os.Getenv("OPENAI_API_KEY")
+	// Try Choreo-provided environment variables first, then fall back to direct env vars
+	openaiAPIKey := os.Getenv("CHOREO_OPENAI_CONNECTION_OPENAI_API_KEY")
+	if openaiAPIKey == "" {
+		openaiAPIKey = os.Getenv("OPENAI_API_KEY")
+	}
 	if openaiAPIKey == "" {
 		return "", fmt.Errorf("OPENAI_API_KEY not set")
 	}
@@ -841,7 +849,11 @@ func generateDishDescription(dishName string) (string, error) {
 }
 
 func generateDishImage(dishName string) (*string, error) {
-	replicateAPIKey := os.Getenv("REPLICATE_API_KEY")
+	// Try Choreo-provided environment variables first, then fall back to direct env vars
+	replicateAPIKey := os.Getenv("CHOREO_REPLICATE_CONNECTION_REPLICATE_API_KEY")
+	if replicateAPIKey == "" {
+		replicateAPIKey = os.Getenv("REPLICATE_API_KEY")
+	}
 	if replicateAPIKey == "" {
 		return nil, fmt.Errorf("REPLICATE_API_KEY not set")
 	}
